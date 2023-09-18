@@ -3,20 +3,23 @@ import type {
   TableOptions,
   SyncOptions,
   Plugin,
-} from '@cloudquery/plugin-sdk-javascript/plugin/plugin';
-import { newPlugin, newUnimplementedDestination } from '@cloudquery/plugin-sdk-javascript/plugin/plugin';
-import { sync } from '@cloudquery/plugin-sdk-javascript/scheduler';
-import type { Table } from '@cloudquery/plugin-sdk-javascript/schema/table';
-import { filterTables } from '@cloudquery/plugin-sdk-javascript/schema/table';
-import { readPackageUp } from 'read-pkg-up';
+} from "@cloudquery/plugin-sdk-javascript/plugin/plugin";
+import {
+  newPlugin,
+  newUnimplementedDestination,
+} from "@cloudquery/plugin-sdk-javascript/plugin/plugin";
+import { sync } from "@cloudquery/plugin-sdk-javascript/scheduler";
+import type { Table } from "@cloudquery/plugin-sdk-javascript/schema/table";
+import { filterTables } from "@cloudquery/plugin-sdk-javascript/schema/table";
+import { readPackageUp } from "read-pkg-up";
 
-import { parseSpec } from './spec.js';
-import type { Spec } from './spec.js';
-import { getTables } from './tables.js';
+import { parseSpec } from "./spec.js";
+import type { Spec } from "./spec.js";
+import { getTables } from "./tables.js";
 
 const {
   packageJson: { version },
-} = (await readPackageUp()) || { packageJson: { version: 'development' } };
+} = (await readPackageUp()) || { packageJson: { version: "development" } };
 
 type FileClient = {
   id: () => string;
@@ -32,14 +35,19 @@ export const newFilePlugin = () => {
     close: () => Promise.resolve(),
     tables: ({ tables, skipTables, skipDependentTables }: TableOptions) => {
       const { allTables } = pluginClient;
-      const filtered = filterTables(allTables, tables, skipTables, skipDependentTables);
+      const filtered = filterTables(
+        allTables,
+        tables,
+        skipTables,
+        skipDependentTables,
+      );
       return Promise.resolve(filtered);
     },
     sync: (options: SyncOptions) => {
       const { client, allTables, plugin } = pluginClient;
 
       if (client === null) {
-        return Promise.reject(new Error('Client not initialized'));
+        return Promise.reject(new Error("Client not initialized"));
       }
 
       const logger = plugin.getLogger();
@@ -47,8 +55,19 @@ export const newFilePlugin = () => {
         spec: { concurrency },
       } = pluginClient;
 
-      const { stream, tables, skipTables, skipDependentTables, deterministicCQId } = options;
-      const filtered = filterTables(allTables, tables, skipTables, skipDependentTables);
+      const {
+        stream,
+        tables,
+        skipTables,
+        skipDependentTables,
+        deterministicCQId,
+      } = options;
+      const filtered = filterTables(
+        allTables,
+        tables,
+        skipTables,
+        skipDependentTables,
+      );
 
       return sync({
         logger,
@@ -61,9 +80,13 @@ export const newFilePlugin = () => {
     },
   };
 
-  const newClient: NewClientFunction = async (logger, spec, { noConnection }) => {
+  const newClient: NewClientFunction = async (
+    logger,
+    spec,
+    { noConnection },
+  ) => {
     pluginClient.spec = parseSpec(spec);
-    pluginClient.client = { id: () => 'text-file' };
+    pluginClient.client = { id: () => "text-file" };
     if (noConnection) {
       pluginClient.allTables = [];
       return pluginClient;
@@ -78,6 +101,6 @@ export const newFilePlugin = () => {
     return pluginClient;
   };
 
-  pluginClient.plugin = newPlugin('text-file', version, newClient);
+  pluginClient.plugin = newPlugin("text-file", version, newClient);
   return pluginClient.plugin;
 };

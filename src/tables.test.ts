@@ -1,8 +1,8 @@
 import test from 'ava';
+import { createLogger, transports, format } from 'winston';
 
 import { newFilePlugin } from "./plugin.js"
 import { getTables } from "./tables.js"
-import { createLogger, transports, format } from 'winston';
 
 test("loads a csv", async (t) => {
     const plugin = newFilePlugin();

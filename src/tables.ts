@@ -1,57 +1,56 @@
+import type { PathLike, Stats, Dirent } from "node:fs";
+import { readFile, readdir, stat } from "node:fs";
+import { basename, join } from "node:path";
+
+import { Utf8 } from "@cloudquery/plugin-sdk-javascript/arrow";
+import type {
+  Column,
+} from "@cloudquery/plugin-sdk-javascript/schema/column";
+import { pathResolver } from "@cloudquery/plugin-sdk-javascript/schema/resolvers";
 import type {
   Table,
   TableResolver,
 } from "@cloudquery/plugin-sdk-javascript/schema/table";
 import { createTable } from "@cloudquery/plugin-sdk-javascript/schema/table";
-
+import { parse } from "csv-parse";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import localizedFormat from "dayjs/plugin/localizedFormat.js";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-
 import pMap from "p-map";
 import type { Logger } from "winston";
-import { readFile, readdir, stat, PathLike, Stats, Dirent } from "fs";
-import { basename, join } from "path";
-import { parse } from "csv-parse";
-import {
-  Column,
-} from "@cloudquery/plugin-sdk-javascript/schema/column";
-import { Utf8 } from "@cloudquery/plugin-sdk-javascript/arrow";
-import { pathResolver } from "@cloudquery/plugin-sdk-javascript/schema/resolvers";
 
 /* eslint-disable import/no-named-as-default-member */
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
-/* eslint-enable import/no-named-as-default-member */
-type FsFunctionWithOptions<T> = <T>(
+type FsFunctionWithOptions = <T>(
   path: PathLike,
-  options: any,
-  callback: (err: NodeJS.ErrnoException | null, result: T) => void,
+  options: unknown,
+  callback: (error: NodeJS.ErrnoException | null, result: T) => void,
 ) => void;
 
-type FsFunctionWithoutOptions<T> = <T>(
+type FsFunctionWithoutOptions = <T>(
   path: PathLike,
-  callback: (err: NodeJS.ErrnoException | null, result: T) => void,
+  callback: (error: NodeJS.ErrnoException | null, result: T) => void,
 ) => void;
 
-const fsSync = async <T>(fn: FsFunctionWithOptions<T> | FsFunctionWithoutOptions<T>, path: PathLike, options?: any): Promise<T> => {
+const fsSync = async <T>(function_: FsFunctionWithOptions | FsFunctionWithoutOptions, path: PathLike, options?: unknown): Promise<T> => {
   return new Promise((resolve, reject) => {
     if(options) {
-      fn(path, options, (err: NodeJS.ErrnoException | null, result: T) => {
-        if (err) {
-          reject(err);
+      (function_ as FsFunctionWithOptions)(path, options, (error: NodeJS.ErrnoException | null, result: T) => {
+        if (error) {
+          reject(error);
           return;
         }
         resolve(result);
       });
     } else {
-      (fn as FsFunctionWithoutOptions<T>)(path, (err: NodeJS.ErrnoException | null, result: T) => {
-        if (err) {
-          reject(err);
+      (function_ as FsFunctionWithoutOptions)(path, (error: NodeJS.ErrnoException | null, result: T) => {
+        if (error) {
+          reject(error);
           return;
         }
         resolve(result);
@@ -78,9 +77,9 @@ const parseTable = async (
   csvDelimiter: string,
 ): Promise<string[][]> => {
   return new Promise((resolve, reject) => {
-    parse(content, { delimiter: csvDelimiter }, (err, records) => {
-      if (err) {
-        reject(err);
+    parse(content, { delimiter: csvDelimiter }, (error, records) => {
+      if (error) {
+        reject(error);
         return;
       }
       resolve(records);
@@ -88,7 +87,7 @@ const parseTable = async (
   });
 };
 
-const getColumnResolver = (c: string): any => {
+const getColumnResolver = (c: string) => {
   return pathResolver(c);
 }
 
@@ -116,19 +115,19 @@ const getTableFromFile = async (
   const columnNames = rawTable[0];
   const getRecordObjectFromRow = (row: string[]) => {
     const record: Record<string, string> = {};
-    for(let i = 0; i < row.length; i += 1) {
-      record[columnNames[i]] = row[i];
+    for(const [index, element] of row.entries()) {
+      record[columnNames[index]] = element;
     }
     return record;
   }
 
-  const resolver: TableResolver = async (clientMeta, parent, stream) => {
+  const resolver: TableResolver = (clientMeta, parent, stream) => {
     const records = rawTable.filter((_record, index) => index > 0);
     for (const record of records) {
       const recordAsObject = getRecordObjectFromRow(record);
       stream.write(recordAsObject);
     }
-    return;
+    return Promise.resolve();
   };
   return createTable({ name, columns, resolver });
 };

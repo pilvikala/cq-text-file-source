@@ -1,0 +1,10 @@
+{
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "allowJs": true,
+    "declaration": true,
+    "outDir": "dist",
+    "sourceMap": true
+  }
+}

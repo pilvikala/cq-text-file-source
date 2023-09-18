@@ -1,6 +1,8 @@
-# File sync plugin
+# text file source plugin
 
-Extracts CSV file into a table
+Extracts a CSV file into a table.
+
+This is a demo plugin featuring [CloudQuery JavaScript SDK](https://github.com/cloudquery/plugin-sdk-javascript).
 
 ## Configuration
 

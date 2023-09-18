@@ -13,7 +13,7 @@ import utc from "dayjs/plugin/utc.js";
 import pMap from "p-map";
 import type { Logger } from "winston";
 import { readFile, readdir, stat, PathLike, Stats, Dirent } from "fs";
-import { basename, join } from "path";
+import Path from "path";
 import { parse } from "csv-parse";
 import {
   Column,
@@ -67,7 +67,7 @@ const getFiles = async (logger: Logger, path: string): Promise<string[]> => {
   }
   if (stats.isDirectory()) {
     const files = await fsSync<Dirent[]>(readdir, path, { withFileTypes: true });
-    return files.filter((f) => f.isFile()).map((f) =>  join(path, f.name));
+    return files.filter((f) => f.isFile()).map((f) =>  Path.join(path, f.name));
   }
   logger.error("Target path is neither a file or a directory.");
   return [];
@@ -92,6 +92,10 @@ const getColumnResolver = (c: string): any => {
   return pathResolver(c);
 }
 
+export const getTableName = (filePath: string) => {
+  return Path.parse(filePath).name;
+}
+
 const getTableFromFile = async (
   logger: Logger,
   path: string,
@@ -99,7 +103,7 @@ const getTableFromFile = async (
 ): Promise<Table> => {
   const content = await fsSync<Buffer>(readFile, path);
   const rawTable = await parseTable(content, csvDelimiter);
-  const name = basename(path);
+  const name = getTableName(path);
   if (rawTable.length === 0) return createTable({ name, columns: [] });
   const columns: Column[] = rawTable[0].map((c) => ({
     name: c,

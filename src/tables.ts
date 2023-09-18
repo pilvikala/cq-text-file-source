@@ -12,8 +12,9 @@ import utc from "dayjs/plugin/utc.js";
 
 import pMap from "p-map";
 import type { Logger } from "winston";
-import { readFile, readdir, stat, PathLike, Stats, Dirent } from "fs";
+import { readdir, Dirent } from "fs";
 import Path from "path";
+import fs from "node:fs/promises";
 import { parse } from "csv-parse";
 import {
   Column,
@@ -26,47 +27,14 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
-/* eslint-enable import/no-named-as-default-member */
-type FsFunctionWithOptions<T> = <T>(
-  path: PathLike,
-  options: any,
-  callback: (err: NodeJS.ErrnoException | null, result: T) => void,
-) => void;
-
-type FsFunctionWithoutOptions<T> = <T>(
-  path: PathLike,
-  callback: (err: NodeJS.ErrnoException | null, result: T) => void,
-) => void;
-
-const fsSync = async <T>(fn: FsFunctionWithOptions<T> | FsFunctionWithoutOptions<T>, path: PathLike, options?: any): Promise<T> => {
-  return new Promise((resolve, reject) => {
-    if(options) {
-      fn(path, options, (err: NodeJS.ErrnoException | null, result: T) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(result);
-      });
-    } else {
-      (fn as FsFunctionWithoutOptions<T>)(path, (err: NodeJS.ErrnoException | null, result: T) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(result);
-      });
-    }
-  });
-};
 
 const getFiles = async (logger: Logger, path: string): Promise<string[]> => {
-  const stats = await fsSync<Stats>(stat, path);
+  const stats = await fs.stat(path);
   if (stats.isFile()) {
     return [path];
   }
   if (stats.isDirectory()) {
-    const files = await fsSync<Dirent[]>(readdir, path, { withFileTypes: true });
+    const files = await fs.readdir(path, { withFileTypes: true });
     return files.filter((f) => f.isFile()).map((f) =>  Path.join(path, f.name));
   }
   logger.error("Target path is neither a file or a directory.");
@@ -101,7 +69,7 @@ const getTableFromFile = async (
   path: string,
   csvDelimiter: string,
 ): Promise<Table> => {
-  const content = await fsSync<Buffer>(readFile, path);
+  const content = await fs.readFile(path);
   const rawTable = await parseTable(content, csvDelimiter);
   const name = getTableName(path);
   if (rawTable.length === 0) return createTable({ name, columns: [] });

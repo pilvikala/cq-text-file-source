@@ -1,15 +1,15 @@
-import { default as Ajv } from 'ajv';
-import camelcaseKeys from 'camelcase-keys';
+import { default as Ajv } from "ajv";
+import camelcaseKeys from "camelcase-keys";
 
 const spec = {
-  type: 'object',
+  type: "object",
   properties: {
-    concurrency: { type: 'integer' },
+    concurrency: { type: "integer" },
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    path: { type: 'string' },
-    csvDelimiter: { type: 'string'}
+    path: { type: "string" },
+    csvDelimiter: { type: "string" },
   },
-  required: ['path'],
+  required: ["path"],
 };
 
 type JSONSpec = {
@@ -34,6 +34,10 @@ export const parseSpec = (spec: string): Spec => {
   if (!valid) {
     throw new Error(`Invalid spec: ${JSON.stringify(validate.errors)}`);
   }
-  const { concurrency = 10_000, path = '', csvDelimiter = ',' } = camelcaseKeys(parsed);
+  const {
+    concurrency = 10_000,
+    path = "",
+    csvDelimiter = ",",
+  } = camelcaseKeys(parsed);
   return { concurrency, path, csvDelimiter };
 };

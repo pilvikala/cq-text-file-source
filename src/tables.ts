@@ -16,9 +16,7 @@ import { readdir, Dirent } from "fs";
 import Path from "path";
 import fs from "node:fs/promises";
 import { parse } from "csv-parse";
-import {
-  Column,
-} from "@cloudquery/plugin-sdk-javascript/schema/column";
+import { Column } from "@cloudquery/plugin-sdk-javascript/schema/column";
 import { Utf8 } from "@cloudquery/plugin-sdk-javascript/arrow";
 import { pathResolver } from "@cloudquery/plugin-sdk-javascript/schema/resolvers";
 
@@ -35,7 +33,7 @@ const getFiles = async (logger: Logger, path: string): Promise<string[]> => {
   }
   if (stats.isDirectory()) {
     const files = await fs.readdir(path, { withFileTypes: true });
-    return files.filter((f) => f.isFile()).map((f) =>  Path.join(path, f.name));
+    return files.filter((f) => f.isFile()).map((f) => Path.join(path, f.name));
   }
   logger.error("Target path is neither a file or a directory.");
   return [];
@@ -58,11 +56,11 @@ const parseTable = async (
 
 const getColumnResolver = (c: string): any => {
   return pathResolver(c);
-}
+};
 
 export const getTableName = (filePath: string) => {
   return Path.parse(filePath).name;
-}
+};
 
 const getTableFromFile = async (
   logger: Logger,
@@ -88,11 +86,11 @@ const getTableFromFile = async (
   const columnNames = rawTable[0];
   const getRecordObjectFromRow = (row: string[]) => {
     const record: Record<string, string> = {};
-    for(let i = 0; i < row.length; i += 1) {
+    for (let i = 0; i < row.length; i += 1) {
       record[columnNames[i]] = row[i];
     }
     return record;
-  }
+  };
 
   const resolver: TableResolver = async (clientMeta, parent, stream) => {
     const records = rawTable.filter((_record, index) => index > 0);
@@ -127,4 +125,3 @@ export const getTables = async (
   );
   return allTables;
 };
-

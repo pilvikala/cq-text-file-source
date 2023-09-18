@@ -13,12 +13,10 @@ import utc from "dayjs/plugin/utc.js";
 import pMap from "p-map";
 import type { Logger } from "winston";
 import { readFile, readdir, stat, PathLike, Stats, Dirent } from "fs";
-import { basename } from "path";
+import { basename, join } from "path";
 import { parse } from "csv-parse";
 import {
   Column,
-  ColumnResolver,
-  createColumn,
 } from "@cloudquery/plugin-sdk-javascript/schema/column";
 import { Utf8 } from "@cloudquery/plugin-sdk-javascript/arrow";
 import { pathResolver } from "@cloudquery/plugin-sdk-javascript/schema/resolvers";
@@ -29,20 +27,36 @@ dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
 /* eslint-enable import/no-named-as-default-member */
-type aFunc<T> = <T>(
+type FsFunctionWithOptions<T> = <T>(
+  path: PathLike,
+  options: any,
+  callback: (err: NodeJS.ErrnoException | null, result: T) => void,
+) => void;
+
+type FsFunctionWithoutOptions<T> = <T>(
   path: PathLike,
   callback: (err: NodeJS.ErrnoException | null, result: T) => void,
 ) => void;
 
-const fsSync = async <T>(fn: aFunc<T>, path: PathLike): Promise<T> => {
+const fsSync = async <T>(fn: FsFunctionWithOptions<T> | FsFunctionWithoutOptions<T>, path: PathLike, options?: any): Promise<T> => {
   return new Promise((resolve, reject) => {
-    fn(path, (err: NodeJS.ErrnoException | null, result: T) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(result);
-    });
+    if(options) {
+      fn(path, options, (err: NodeJS.ErrnoException | null, result: T) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(result);
+      });
+    } else {
+      (fn as FsFunctionWithoutOptions<T>)(path, (err: NodeJS.ErrnoException | null, result: T) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(result);
+      });
+    }
   });
 };
 
@@ -52,8 +66,8 @@ const getFiles = async (logger: Logger, path: string): Promise<string[]> => {
     return [path];
   }
   if (stats.isDirectory()) {
-    const files = await fsSync<Dirent[]>(readdir, path);
-    return files.filter((f) => f.isFile()).map((f) => f.name);
+    const files = await fsSync<Dirent[]>(readdir, path, { withFileTypes: true });
+    return files.filter((f) => f.isFile()).map((f) =>  join(path, f.name));
   }
   logger.error("Target path is neither a file or a directory.");
   return [];

@@ -17,5 +17,5 @@ spec:
   destinations:
     - "sqlite"
   spec:
-    path: "test_data/sample.csv" #path to the file
+    path: "test_data/sample.csv" #path to the file or folder
 ```

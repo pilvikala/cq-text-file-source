@@ -9,7 +9,7 @@ spec:
   destinations:
     - "sqlite"
   spec:
-    path: "test_data/sample.csv"
+    path: "test_data" # specify folder or a single file
 ---
 kind: destination
 spec:

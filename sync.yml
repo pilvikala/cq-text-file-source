@@ -1,6 +1,6 @@
 kind: source
 spec:
-  name: "cq-file"
+  name: "text-file"
   registry: "grpc"
   path: "localhost:7777"
   version: "v1.0.0"

@@ -63,7 +63,7 @@ export const newFilePlugin = () => {
 
   const newClient: NewClientFunction = async (logger, spec, { noConnection }) => {
     pluginClient.spec = parseSpec(spec);
-    pluginClient.client = { id: () => 'airtable' };
+    pluginClient.client = { id: () => 'text-file' };
     if (noConnection) {
       pluginClient.allTables = [];
       return pluginClient;
@@ -78,6 +78,6 @@ export const newFilePlugin = () => {
     return pluginClient;
   };
 
-  pluginClient.plugin = newPlugin('cq-file', version, newClient);
+  pluginClient.plugin = newPlugin('text-file', version, newClient);
   return pluginClient.plugin;
 };

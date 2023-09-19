@@ -55,11 +55,11 @@ const parseTable = async (
 };
 
 const getColumnResolver = (c: string): ColumnResolver => {
-  return (meta, resource, column) => {
+  return (meta, resource) => {
     const dataItem = resource.getItem();
     resource.setColumData(c, (dataItem as Record<string, unknown>)[c]);
     return Promise.resolve();
-  }
+  };
 };
 
 export const getTableName = (filePath: string) => {

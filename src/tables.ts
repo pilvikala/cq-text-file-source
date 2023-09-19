@@ -6,7 +6,6 @@ import type {
   Column,
   ColumnResolver,
 } from "@cloudquery/plugin-sdk-javascript/schema/column";
-import { pathResolver } from "@cloudquery/plugin-sdk-javascript/schema/resolvers";
 import type {
   Table,
   TableResolver,
@@ -56,7 +55,11 @@ const parseTable = async (
 };
 
 const getColumnResolver = (c: string): ColumnResolver => {
-  return pathResolver(c);
+  return (meta, resource, column) => {
+    const dataItem = resource.getItem();
+    resource.setColumData(c, (dataItem as Record<string, unknown>)[c]);
+    return Promise.resolve();
+  }
 };
 
 export const getTableName = (filePath: string) => {

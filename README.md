@@ -20,4 +20,5 @@ spec:
     - "sqlite"
   spec:
     path: "test_data/sample.csv" #path to the file or folder
+    csvDelimiter: "," # optional, default is ","
 ```

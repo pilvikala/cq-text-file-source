@@ -44,6 +44,9 @@
     "url": "https://github.com/cloudquery/cloudquery/issues"
   },
   "homepage": "https://github.com/cloudquery/cloudquery#readme",
+  "overrides": {
+    "esbuild": "0.27.0"
+  },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
     "@tsconfig/node16": "^16.1.0",

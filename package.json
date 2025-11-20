@@ -89,6 +89,9 @@
     "p-map": "^6.0.0",
     "read-pkg-up": "^10.0.0"
   },
+  "overrides": {
+    "esbuild": "0.27.0"
+  },
   "ava": {
     "extensions": {
       "ts": "module"
